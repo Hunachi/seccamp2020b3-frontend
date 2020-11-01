@@ -1,6 +1,7 @@
 // Fill in with your values
 const POST_ENDPOINT = 'https://seccamp2020b3-08.azurewebsites.net/api/post'
 const TIMELINE_ENDPOINT = 'https://seccamp2020b3-08.azurewebsites.net/api/timeline'
+const TIMESTAMP_KEY = 'timestamp_key'
 
 function updateUI() {
   const isLoggedIn = localStorage.getItem('id_token');
@@ -60,6 +61,15 @@ document.getElementById('btn-timeline').addEventListener('click', (e) => {
 
   const email = document.getElementById('email').value;
 
+  // get timestamp
+  const previousTimestamp = localStorage.getItem(TIMESTAMP_KEY);
+  const timestamp = (previousTimestamp != null) ? previousTimestamp : 0;
+
+  const requestData = {
+    id: email,
+    previous_timestamp : timestamp
+  }
+
   fetch(TIMELINE_ENDPOINT, {
     method: 'POST',
     credentials: 'include',
@@ -67,13 +77,13 @@ document.getElementById('btn-timeline').addEventListener('click', (e) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: email ? JSON.stringify({id: email}) : "",
+    body: email ? JSON.stringify(requestData) : "",
   })
     .then(response => response.json())
     .then((data) => {
       console.log('Message:', data);
       const base = document.getElementById('messages')
-      base.innerHTML = '';
+      // base.innerHTML = '';
 
       const template  = document.getElementById('msgtmpl');
       data.msgs.forEach((msg) => {
@@ -84,6 +94,9 @@ document.getElementById('btn-timeline').addEventListener('click', (e) => {
         msgrow.querySelector('.msgdate').textContent = new Date(msg.timestamp);
         base.appendChild(msgrow);
       });
+      
+      // Save last timestamp 
+      localStorage.setItem(TIMESTAMP_KEY, timestamp);
     })
     .catch((e) => {
       console.log('error', e);
